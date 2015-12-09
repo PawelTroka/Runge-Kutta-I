@@ -32,7 +32,16 @@ struct Point
 
 std::vector<Point*> rungeKuttaI(long double A, long double B, long double x0, long double epsilon)
 {
-	long double h = epsilon, t0 = A;
+	//http://isites.harvard.edu/fs/docs/icb.topic250025.files/NumericalTheor.pdf
+	//|GTE| = epsilon <= (hM/2L) (exp(L(t-t0))-1) 
+	//epsilon <= (hM/2L) (exp(L(B-A))-1)
+	// h >= (2L epsilon )/( M (exp(L(B-A))-1) )
+	long double M=1;//upper bound on the second derivative of x(t) on the given interval
+	long double L=1;//the Lipschitz constant of f
+	long double h = (2L*epsilon) / (M*(exp(L*(B - A)) - 1));
+	
+	
+	long double t0 = A;
 	long double k1;
 	int n = fabs(B - A) / h;
 
