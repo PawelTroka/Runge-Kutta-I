@@ -30,20 +30,12 @@ struct Point
 	long double t;
 };
 
-std::vector<Point*> rungeKuttaI(long double A, long double B, long double x0, long double epsilon)
+
+
+std::vector<Point*> rungeKuttaI(long double t0, long double tn, long double x0, long double h)
 {
-	//http://isites.harvard.edu/fs/docs/icb.topic250025.files/NumericalTheor.pdf
-	//|GTE| = epsilon <= (hM/2L) (exp(L(t-t0))-1) 
-	//epsilon <= (hM/2L) (exp(L(B-A))-1)
-	// h >= (2L epsilon )/( M (exp(L(B-A))-1) )
-	long double M=1;//upper bound on the second derivative of x(t) on the given interval
-	long double L=1;//the Lipschitz constant of f
-	long double h = (2L*epsilon) / (M*(exp(L*(B - A)) - 1));
-	
-	
-	long double t0 = A;
 	long double k1;
-	int n = fabs(B - A) / h;
+	int n = fabs(tn - t0) / h;
 
 	std::vector<Point*> Xt;
 	Xt.push_back(new Point(x0, t0));//x(t0)=x0
@@ -54,6 +46,32 @@ std::vector<Point*> rungeKuttaI(long double A, long double B, long double x0, lo
 		Xt.push_back(new Point(Xt[i - 1]->xt + k1, t0 + i * h));
 	}
 	return Xt;
+}
+
+
+std::vector<Point*> rungeKuttaI(long double t0, long double tn, long double x0, long double epsilon, long double LipschitzConstant, long double dfdt_t0_x0, long double dfdx_t0_x0)
+{
+	//http://isites.harvard.edu/fs/docs/icb.topic250025.files/NumericalTheor.pdf
+	//|GTE| = epsilon <= (hM/2L) (exp(L(t-t0))-1) 
+	//epsilon <= (hM/2L) (exp(L(B-A))-1)
+	// h >= (2L epsilon )/( M (exp(L(B-A))-1) )
+	long double M = dfdt_t0_x0+ dfdx_t0_x0*function(x0,t0);//upper bound on the second derivative of x(t) on the given interval
+	long double L = LipschitzConstant;//the Lipschitz constant of f
+	long double h = (2L*epsilon) / (M*(exp(L*(tn - t0)) - 1));
+	return rungeKuttaI(t0, tn, x0, h);
+}
+
+
+std::vector<Point*> rungeKuttaI(long double t0, long double tn, long double x0, long double epsilon, long double LipschitzConstant, long double upperBoundOnTheSecondDerivativeOfX)
+{
+	//http://isites.harvard.edu/fs/docs/icb.topic250025.files/NumericalTheor.pdf
+	//|GTE| = epsilon <= (hM/2L) (exp(L(t-t0))-1) 
+	//epsilon <= (hM/2L) (exp(L(B-A))-1)
+	// h >= (2L epsilon )/( M (exp(L(B-A))-1) )
+	long double M = upperBoundOnTheSecondDerivativeOfX;//upper bound on the second derivative of x(t) on the given interval
+	long double L = LipschitzConstant;//the Lipschitz constant of f
+	long double h = (2L*epsilon) / (M*(exp(L*(tn - t0)) - 1));
+	return rungeKuttaI(t0, tn, x0, h);
 }
 
 std::string toComputatorNET(std::vector<Point*> xt)
@@ -153,10 +171,14 @@ void saveToFile(std::vector<Point*> xt)
 int main(int argc, char* argv[])
 {
 	long double epsilon, x0;
+	long double LipschitzConstant, dfdt_t0_x0, dfdx_t0_x0,M;
 
-	std::cin >> x0 >> epsilon;
 
-	std::vector<Point*> xt = rungeKuttaI(0, 1, x0, epsilon);
+	std::cin >> x0 >> epsilon >> LipschitzConstant >> dfdt_t0_x0 >> dfdx_t0_x0;
+	std::vector<Point*> xt = rungeKuttaI(0, 1, x0, epsilon, LipschitzConstant, dfdt_t0_x0, dfdx_t0_x0);
+
+	//std::cin >> x0 >> epsilon >> LipschitzConstant >> M;
+	//std::vector<Point*> xt = rungeKuttaI(0, 1, x0, epsilon, LipschitzConstant, M);
 
 	saveToFile(xt);
 
