@@ -8,7 +8,8 @@
 
 long double function(long double x, long double t)
 {
-	return x + exp(t);//x(t) = t exp(t)
+	//return x + exp(t);//x(t) = t exp(t)
+	return x / (t + 1);
 }
 
 long double comparisonFunction(long double t)
@@ -35,6 +36,13 @@ struct Point
 std::vector<Point*> rungeKuttaI(long double t0, long double tn, long double x0, long double h)
 {
 	long double k1;
+
+	if (h < 1e-5)
+		h = 1e-5;
+
+	if (h > 0.01)
+		h = 0.01;
+
 	int n = fabs(tn - t0) / h;
 
 	std::vector<Point*> Xt;
@@ -114,9 +122,13 @@ private:
 	void DISPLAY() override
 	{
 		std::vector<double> xNumerical, xAnalytic, yNumerical, yAnalytic;
-
+		double ymax=-1e32, ymin=1e32;
 		for (int i = 0; i < points.size(); ++i)
 		{
+			if (points[i]->xt < ymin)
+				ymin = points[i]->xt;
+			else if(points[i]->xt > ymax)
+				ymax = points[i]->xt;
 			xNumerical.push_back(points[i]->t);
 			yNumerical.push_back(points[i]->xt);
 		}
@@ -131,11 +143,12 @@ private:
 		}
 
 		title("Porownanie: czerwony - rozwiazanie numeryczne, zielony - rozwiazanie analityczne");
-
+		axis(floor(A), ceil(B), floor(ymin)-1, ceil(ymax)+1);
+		
 		plot(xNumerical, yNumerical);
 		set("r");
-		plot(xAnalytic, yAnalytic);
-		set("g");
+		//plot(xAnalytic, yAnalytic);
+		//set("g");
 	}
 };
 
@@ -179,6 +192,9 @@ int main(int argc, char* argv[])
 
 	//std::cin >> x0 >> epsilon >> LipschitzConstant >> M;
 	//std::vector<Point*> xt = rungeKuttaI(0, 1, x0, epsilon, LipschitzConstant, M);
+
+	//std::cin >> x0 >> epsilon;
+	//std::vector<Point*> xt = rungeKuttaI(0, 1, x0, epsilon);
 
 	saveToFile(xt);
 
