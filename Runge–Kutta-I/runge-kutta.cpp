@@ -9,6 +9,8 @@
 long double function(long double x, long double t)
 {
 	//return x + exp(t);//x(t) = t exp(t)
+	//return sin(10 * t);
+	//return sin(25 * t);
 	return x / (t + 1);
 }
 
@@ -17,7 +19,7 @@ long double comparisonFunction(long double t)
 	return t * exp(t);
 }
 
-typedef long double (*RealFunction)(long double);
+typedef long double(*RealFunction)(long double);
 
 struct Point
 {
@@ -63,7 +65,7 @@ std::vector<Point*> rungeKuttaI(long double t0, long double tn, long double x0, 
 	//|GTE| = epsilon <= (hM/2L) (exp(L(t-t0))-1) 
 	//epsilon <= (hM/2L) (exp(L(B-A))-1)
 	// h >= (2L epsilon )/( M (exp(L(B-A))-1) )
-	long double M = dfdt_t0_x0+ dfdx_t0_x0*function(x0,t0);//upper bound on the second derivative of x(t) on the given interval
+	long double M = dfdt_t0_x0 + dfdx_t0_x0*function(x0, t0);//upper bound on the second derivative of x(t) on the given interval
 	long double L = LipschitzConstant;//the Lipschitz constant of f
 	long double h = (2L*epsilon) / (M*(exp(L*(tn - t0)) - 1));
 	return rungeKuttaI(t0, tn, x0, h);
@@ -104,7 +106,7 @@ std::string toComputatorNET(std::vector<Point*> xt)
 class ComparisonPlot : public MatPlot
 {
 public:
-	ComparisonPlot(): comparisonFunction(nullptr)
+	ComparisonPlot() : comparisonFunction(nullptr)
 	{
 	}
 
@@ -122,12 +124,12 @@ private:
 	void DISPLAY() override
 	{
 		std::vector<double> xNumerical, xAnalytic, yNumerical, yAnalytic;
-		double ymax=-1e32, ymin=1e32;
+		double ymax = -1e32, ymin = 1e32;
 		for (int i = 0; i < points.size(); ++i)
 		{
 			if (points[i]->xt < ymin)
 				ymin = points[i]->xt;
-			else if(points[i]->xt > ymax)
+			else if (points[i]->xt > ymax)
 				ymax = points[i]->xt;
 			xNumerical.push_back(points[i]->t);
 			yNumerical.push_back(points[i]->xt);
@@ -143,8 +145,9 @@ private:
 		}
 
 		title("Porownanie: czerwony - rozwiazanie numeryczne, zielony - rozwiazanie analityczne");
-		axis(floor(A), ceil(B), floor(ymin)-1, ceil(ymax)+1);
-		
+
+		if (ymax == ymin) { ymax = ceil(ymax); ymin = floor(ymin); if (ymax == ymin) { ymax++; ymin--; } axis(floor(A), ceil(B), ymin, ymax);}
+
 		plot(xNumerical, yNumerical);
 		set("r");
 		//plot(xAnalytic, yAnalytic);
@@ -162,13 +165,13 @@ void showChart(int argc, char* argv[], std::vector<Point*> xt)
 	plot = new ComparisonPlot(xt, comparisonFunction);
 
 	glutDisplayFunc([]() -> void
-		{
-			plot->display();
-		});
+	{
+		plot->display();
+	});
 	glutReshapeFunc([](int w, int h) -> void
-		{
-			plot->reshape(w, h);
-		});
+	{
+		plot->reshape(w, h);
+	});
 	glutMainLoop();
 }
 
@@ -184,7 +187,7 @@ void saveToFile(std::vector<Point*> xt)
 int main(int argc, char* argv[])
 {
 	long double epsilon, x0;
-	long double LipschitzConstant, dfdt_t0_x0, dfdx_t0_x0,M;
+	long double LipschitzConstant, dfdt_t0_x0, dfdx_t0_x0, M;
 
 
 	std::cin >> x0 >> epsilon >> LipschitzConstant >> dfdt_t0_x0 >> dfdx_t0_x0;
